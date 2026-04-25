@@ -1,0 +1,49 @@
+#스프링부트의 설정이 동작하기 위한
+#외부 설정 값들을 작성하는 곳
+
+server:
+  port: 9090
+  tomcat:
+    uri-encoding: utf-8
+
+spring:
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+  main:
+    allow-bean-definition-overriding: true
+
+  # PostgreSQL 데이터소스 설정
+  datasource:
+    url: jdbc:postgresql://222.239.249.197:5432/postgres
+    username: postgres
+    password: ehdduf922
+    driver-class-name: org.postgresql.Driver
+
+  # JPA / Hibernate 설정
+  jpa:
+    hibernate:
+      # 운영 엔티티 스키마와 실제 DB 스키마가 일치하는지만 검증 (DDL 자동 변경 없음)
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: false
+        cache:
+          use_sql_comments: false
+          use_query_cache: false
+
+  # Spring Boot DevTools (개발 편의 기능)
+  devtools:
+    restart:
+      # 클래스패스 변경 시 자동 재시작 활성화
+      enabled: true
+      # 변경 감지 주기 / 변경이 없어야 재시작되는 조용 구간
+      poll-interval: 2s
+      quiet-period: 1s
+    livereload:
+      # 정적 리소스 변경 시 브라우저 자동 새로고침
+      enabled: true
+      port: 35729
