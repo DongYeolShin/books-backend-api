@@ -123,9 +123,9 @@ CREATE INDEX idx_book_categories_category ON book_categories(category_id);
 -- 5. users (회원 테이블)
 -- =====================================================================
 CREATE TABLE users (
-    user_id          BIGSERIAL       PRIMARY KEY,
+    user_id          VARCHAR(100)       PRIMARY KEY,
     email            VARCHAR(100)    NOT NULL UNIQUE,
-    passwd         VARCHAR(255)    NOT NULL,
+    passwd          VARCHAR(255)    NOT NULL,
     name             VARCHAR(50)     NOT NULL,
     phone            VARCHAR(20),
     gender           VARCHAR(20),
