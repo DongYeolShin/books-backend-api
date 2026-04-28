@@ -47,3 +47,10 @@ spring:
       # 정적 리소스 변경 시 브라우저 자동 새로고침
       enabled: true
       port: 35729
+
+# JWT 인증 설정 (시크릿 키는 애플리케이션 시작 시 임의 생성하여 메모리에만 보관)
+jwt:
+  # 액세스 토큰 유효 시간 (ms 단위, 기본 30분)
+  access-token-validity: 1800000
+  # 토큰 issuer 식별자
+  issuer: books-backend-api
