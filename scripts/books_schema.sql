@@ -43,7 +43,7 @@ CREATE TYPE order_status AS ENUM (
 -- 2. books (도서 테이블)
 -- =====================================================================
 CREATE TABLE books (
-    book_id         BIGSERIAL       PRIMARY KEY,
+    book_id         VARCHAR(100)       PRIMARY KEY,
     title           VARCHAR(200)    NOT NULL,
     subtitle        VARCHAR(200),
     author          VARCHAR(100)    NOT NULL,
@@ -107,7 +107,7 @@ COMMENT ON COLUMN categories.display_order IS '메뉴 표시 순서';
 -- 4. book_categories (도서-카테고리 연결 테이블, N:M)
 -- =====================================================================
 CREATE TABLE book_categories (
-    book_id         BIGINT          NOT NULL,
+    book_id         varchar(100)          NOT NULL,
     category_id     INTEGER         NOT NULL,
     PRIMARY KEY (book_id, category_id),
     FOREIGN KEY (book_id)     REFERENCES books(book_id)           ON DELETE CASCADE,
@@ -156,7 +156,7 @@ COMMENT ON COLUMN users.address_detail  IS '상세 주소 (동/호수 등)';
 -- =====================================================================
 CREATE TABLE orders (
     order_id          BIGSERIAL      PRIMARY KEY,
-    user_id           BIGINT         NOT NULL,
+    user_id           VARCHAR(100)   NOT NULL,
     total_amount      INTEGER        NOT NULL CHECK (total_amount >= 0),
     status            order_status   NOT NULL DEFAULT 'pending',
     shipping_address  VARCHAR(255)   NOT NULL,
@@ -182,11 +182,11 @@ CREATE INDEX idx_orders_ordered_at ON orders(ordered_at DESC);
 -- 7. order_items (주문 상세 테이블)
 -- =====================================================================
 CREATE TABLE order_items (
-    order_item_id       BIGSERIAL   PRIMARY KEY,
-    order_id            BIGINT      NOT NULL,
-    book_id             BIGINT      NOT NULL,
-    quantity            INTEGER     NOT NULL CHECK (quantity > 0),
-    price_at_purchase   INTEGER     NOT NULL CHECK (price_at_purchase >= 0),
+    order_item_id       BIGSERIAL    PRIMARY KEY,
+    order_id            BIGINT       NOT NULL,
+    book_id             VARCHAR(100) NOT NULL,
+    quantity            INTEGER      NOT NULL CHECK (quantity > 0),
+    price_at_purchase   INTEGER      NOT NULL CHECK (price_at_purchase >= 0),
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (book_id)  REFERENCES books(book_id)   ON DELETE RESTRICT
 );
@@ -207,8 +207,8 @@ CREATE INDEX idx_order_items_book  ON order_items(book_id);
 -- =====================================================================
 CREATE TABLE cart_items (
     cart_item_id    BIGSERIAL       PRIMARY KEY,
-    user_id         BIGINT          NOT NULL,
-    book_id         BIGINT          NOT NULL,
+    user_id         VARCHAR(100)    NOT NULL,
+    book_id         VARCHAR(100)    NOT NULL,
     quantity        INTEGER         NOT NULL DEFAULT 1 CHECK (quantity > 0),
     added_at        TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
@@ -230,8 +230,8 @@ CREATE INDEX idx_cart_items_user ON cart_items(user_id);
 -- =====================================================================
 CREATE TABLE reviews (
     review_id       BIGSERIAL       PRIMARY KEY,
-    user_id         BIGINT          NOT NULL,
-    book_id         BIGINT          NOT NULL,
+    user_id         VARCHAR(100)    NOT NULL,
+    book_id         VARCHAR(100)    NOT NULL,
     rating          SMALLINT        NOT NULL CHECK (rating BETWEEN 1 AND 5),
     content         TEXT,
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,

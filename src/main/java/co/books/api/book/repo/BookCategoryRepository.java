@@ -15,11 +15,11 @@ import java.util.List;
 public interface BookCategoryRepository extends JpaRepository<BookCategoryEntity, BookCategoryId> {
 
     /** 특정 도서에 연결된 매핑 목록 */
-    List<BookCategoryEntity> findByIdBookId(Long bookId);
+    List<BookCategoryEntity> findByIdBookId(String bookId);
 
     /** 특정 카테고리에 연결된 매핑 목록 */
     List<BookCategoryEntity> findByIdCategoryId(Integer categoryId);
 
     /** 특정 도서의 모든 카테고리 매핑 삭제 */
-    void deleteByIdBookId(Long bookId);
+    void deleteByIdBookId(String bookId);
 }

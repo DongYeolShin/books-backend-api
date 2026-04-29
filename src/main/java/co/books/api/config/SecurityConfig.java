@@ -9,6 +9,7 @@ import co.books.api.auth.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -73,6 +74,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // 로그인/회원가입 등 공개 엔드포인트
                         .requestMatchers(LOGIN_URL, "/users/signup").permitAll()
+                        // 도서 조회 엔드포인트 (메인 Top-N, 상세 등) 는 비로그인 접근 허용
+                        .requestMatchers(HttpMethod.GET, "/api/v1/books/**").permitAll()
                         // 임시: 기존 학습용 엔드포인트는 공개
                         .requestMatchers("/test", "/std/list").permitAll()
                         .anyRequest().authenticated())

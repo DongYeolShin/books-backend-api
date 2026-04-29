@@ -12,7 +12,7 @@ import java.util.Optional;
  * books 테이블에 대한 기본 CRUD 와 자주 쓰이는 조회 메서드를 제공한다.
  */
 @Repository
-public interface BookRepository extends JpaRepository<BookEntity, Long> {
+public interface BookRepository extends JpaRepository<BookEntity, String> {
 
     /** ISBN 으로 도서 단건 조회 */
     Optional<BookEntity> findByIsbn(String isbn);
@@ -25,4 +25,23 @@ public interface BookRepository extends JpaRepository<BookEntity, Long> {
 
     /** 제목에 키워드가 포함된 도서 검색 */
     List<BookEntity> findByTitleContaining(String keyword);
+
+    /**
+     * 베스트셀러 Top 5.
+     * 출간일 최신순, 같으면 제목 오름차순.
+     */
+    List<BookEntity> findTop5ByIsBestsellerOrderByPublishDateDescTitleAsc(String isBestseller);
+
+    /**
+     * 신간 Top 5.
+     * 출간일 최신순, 같으면 제목 오름차순.
+     */
+    List<BookEntity> findTop5ByIsNewOrderByPublishDateDescTitleAsc(String isNew);
+
+    /**
+     * 기본서 Top 5 (베스트셀러도 아니고 신간도 아닌 도서).
+     * 출간일 최신순, 같으면 제목 오름차순.
+     */
+    List<BookEntity> findTop5ByIsBestsellerAndIsNewOrderByPublishDateDescTitleAsc(
+            String isBestseller, String isNew);
 }

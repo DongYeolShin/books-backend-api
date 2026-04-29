@@ -22,8 +22,8 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class BookCategoryId implements Serializable {
 
-    @Column(name = "book_id")
-    private Long bookId;
+    @Column(name = "book_id", length = 100)
+    private String bookId;
 
     @Column(name = "category_id")
     private Integer categoryId;
