@@ -20,6 +20,7 @@ public record BooksDetailDto(
         Integer salePrice,
         String description,
         String imageUrl,
+        String contents,
         Integer stock,
         List<BooksReviewItemDto> reviewList
 ) {
@@ -35,6 +36,7 @@ public record BooksDetailDto(
                 book.getSalePrice(),
                 book.getDescription(),
                 book.getImageUrl(),
+                book.getContents(),
                 book.getStock(),
                 reviewList
         );

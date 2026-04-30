@@ -10,14 +10,16 @@ public record BooksItemDto(
         String bookId,
         String title,
         String author,
-        Integer price
+        Integer price,
+        String imageUrl
 ) {
     public static BooksItemDto from(BookEntity book) {
         return new BooksItemDto(
                 book.getBookId(),
                 book.getTitle(),
                 book.getAuthor(),
-                book.getSalePrice()
+                book.getSalePrice(),
+                book.getImageUrl()
         );
     }
 }

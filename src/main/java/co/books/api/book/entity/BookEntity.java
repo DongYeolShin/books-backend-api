@@ -53,6 +53,10 @@ public class BookEntity {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    /** 도서 광고 이미지 경로 */
+    @Column(length = 100)
+    private String contents;
+
     @Column(name = "original_price", nullable = false)
     private Integer originalPrice;
 

@@ -3,12 +3,11 @@ package co.books.api.book.contrl;
 import co.books.api.book.dto.BooksDetailResponse;
 import co.books.api.book.dto.BooksTopNResponse;
 import co.books.api.book.service.BooksService;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 도서 관련 REST API.
