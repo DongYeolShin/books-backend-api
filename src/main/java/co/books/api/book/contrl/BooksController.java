@@ -1,6 +1,7 @@
 package co.books.api.book.contrl;
 
 import co.books.api.book.dto.BooksDetailResponse;
+import co.books.api.book.dto.BooksListResponse;
 import co.books.api.book.dto.BooksTopNResponse;
 import co.books.api.book.service.BooksService;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -28,6 +29,27 @@ public class BooksController {
     @GetMapping("/topn")
     public ResponseEntity<BooksTopNResponse> getTopN() {
         return ResponseEntity.ok(BooksTopNResponse.ok(booksService.getTopN()));
+    }
+
+    /**
+     * 메뉴별 도서 리스트.
+     *
+     * <ul>
+     *   <li>category: 메뉴 식별자 (web/mobile/basic 은 카테고리 slug, new/bestseller 는 플래그 컬럼)</li>
+     *   <li>search: 제목/저자 부분 일치 검색어 (선택)</li>
+     *   <li>page: 1-based 페이지 번호 (기본 1)</li>
+     *   <li>size: 페이지당 행 수 (기본 10)</li>
+     * </ul>
+     *
+     * 정렬은 출간일 최신순, 같으면 제목 오름차순. 인증 없이 접근 가능하다.
+     */
+    @GetMapping
+    public ResponseEntity<BooksListResponse> getList(
+            @RequestParam("category") String category,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size) {
+        return ResponseEntity.ok(booksService.getList(category, keyword, page, size));
     }
 
     /**

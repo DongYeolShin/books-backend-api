@@ -6,6 +6,7 @@ import co.books.api.auth.handler.JwtAuthenticationEntryPoint;
 import co.books.api.auth.handler.LoginFailureHandler;
 import co.books.api.auth.handler.LoginSuccessHandler;
 import co.books.api.auth.jwt.JwtTokenProvider;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,6 +73,11 @@ public class SecurityConfig {
                 .logout(logout -> logout.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
+                        // 컨트롤러에서 예외가 발생하면 서블릿이 /error 로 forward 하는데,
+                        // 이 forward 요청이 다시 SecurityFilterChain 을 타면서
+                        // anyRequest().authenticated() 에 걸려 본래의 500 대신 401 이 나가는
+                        // 문제를 막기 위해, ERROR 디스패치는 인증 체크에서 제외한다.
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         // 로그인/회원가입 등 공개 엔드포인트
                         .requestMatchers(LOGIN_URL, "/users/signup").permitAll()
                         // 도서 조회 엔드포인트 (메인 Top-N, 상세 등) 는 비로그인 접근 허용
