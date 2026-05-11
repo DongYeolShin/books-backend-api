@@ -14,15 +14,24 @@ public class CustomUserDetails extends User {
     /** 회원 이름 (UserEntity.name) */
     private final String name;
 
+    /** 고객 포인트 (UserEntity.points) */
+    private final Integer points;
+
     public CustomUserDetails(String username,
                              String password,
                              String name,
+                             Integer points,
                              Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
         this.name = name;
+        this.points = points;
     }
 
     public String getName() {
         return name;
+    }
+
+    public Integer getPoints() {
+        return points;
     }
 }

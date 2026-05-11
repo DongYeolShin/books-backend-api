@@ -133,6 +133,7 @@ CREATE TABLE users (
     postal_code      VARCHAR(10),
     address          VARCHAR(255),
     address_detail   VARCHAR(255),
+    points           INTEGER         default 0,
     created_at       TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -148,6 +149,7 @@ COMMENT ON COLUMN users.birth_date      IS '생년월일';
 COMMENT ON COLUMN users.postal_code     IS '우편번호';
 COMMENT ON COLUMN users.address         IS '기본 주소 (도로명/지번)';
 COMMENT ON COLUMN users.address_detail  IS '상세 주소 (동/호수 등)';
+COMMENT ON COLUMN users.points          IS '고객 포인트';
  
 
 
@@ -249,3 +251,6 @@ CREATE INDEX idx_reviews_book ON reviews(book_id);
 CREATE INDEX idx_reviews_user ON reviews(user_id);
 
 
+/* 추가 사항 */
+alter table books
+    add column contents text default '';

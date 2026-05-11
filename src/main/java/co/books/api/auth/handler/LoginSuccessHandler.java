@@ -37,8 +37,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // CustomUserDetailsService 가 항상 CustomUserDetails 를 반환하므로 캐스팅이 안전하다.
         String name = null;
+        Integer points = null;
         if (authentication.getPrincipal() instanceof CustomUserDetails details) {
             name = details.getName();
+            points = details.getPoints();
         }
 
         Map<String, Object> body = new LinkedHashMap<>();
@@ -47,6 +49,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         body.put("expiresIn", jwtTokenProvider.getAccessTokenValidityMillis() / 1000);
         body.put("userId", userId);
         body.put("name", name);
+        body.put("points", points);
 
         response.setStatus(HttpStatus.OK.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

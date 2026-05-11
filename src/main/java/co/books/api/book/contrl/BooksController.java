@@ -3,6 +3,7 @@ package co.books.api.book.contrl;
 import co.books.api.book.dto.BooksDetailResponse;
 import co.books.api.book.dto.BooksListResponse;
 import co.books.api.book.dto.BooksTopNResponse;
+import co.books.api.book.dto.SelectedBooksResponse;
 import co.books.api.book.service.BooksService;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.RequiredArgsConstructor;
@@ -59,5 +60,16 @@ public class BooksController {
     @GetMapping("/{bookId}")
     public ResponseEntity<BooksDetailResponse> getDetail(@PathVariable String bookId) {
         return ResponseEntity.ok(BooksDetailResponse.ok(booksService.getDetail(bookId)));
+    }
+
+    /**
+     * 선택된 책 정보 조회.
+     * order-books 파라미터는 콤마(,) 로 구분된 bookId 문자열이다.
+     * 예: /api/v1/books?order-books=BOOK001,BOOK002
+     */
+    @GetMapping(params = "order-books")
+    public ResponseEntity<SelectedBooksResponse> getSelected(
+            @RequestParam("order-books") String orderBooks) {
+        return ResponseEntity.ok(SelectedBooksResponse.ok(booksService.getSelected(orderBooks)));
     }
 }

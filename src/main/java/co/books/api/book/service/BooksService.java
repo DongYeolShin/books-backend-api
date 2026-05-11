@@ -7,6 +7,7 @@ import co.books.api.book.dto.BooksListResponse;
 import co.books.api.book.dto.BooksReviewItemDto;
 import co.books.api.book.dto.BooksTopNData;
 import co.books.api.book.dto.PageInfo;
+import co.books.api.book.dto.SelectedBookItemDto;
 import co.books.api.book.entity.BookEntity;
 import co.books.api.book.repo.BookRepository;
 import co.books.api.review.repo.ReviewRepository;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -111,6 +113,31 @@ public class BooksService {
 
         PageInfo pageInfo = new PageInfo(safePage, result.getTotalElements());
         return BooksListResponse.ok(data, pageInfo);
+    }
+
+    /**
+     * 선택된 도서 정보를 조회한다.
+     * orderBooks 는 콤마(,) 로 구분된 bookId 문자열이며,
+     * 해당 bookId 들에 매칭되는 도서 정보를 리스트로 반환한다.
+     */
+    @Transactional(readOnly = true)
+    public List<SelectedBookItemDto> getSelected(String orderBooks) {
+        if (orderBooks == null || orderBooks.isBlank()) {
+            return List.of();
+        }
+
+        List<String> bookIds = Arrays.stream(orderBooks.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+
+        if (bookIds.isEmpty()) {
+            return List.of();
+        }
+
+        return bookRepository.findAllById(bookIds).stream()
+                .map(SelectedBookItemDto::from)
+                .toList();
     }
 
     /**

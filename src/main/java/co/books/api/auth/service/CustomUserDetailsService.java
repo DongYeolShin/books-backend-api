@@ -30,11 +30,12 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다. userId=" + username));
 
         // 권한 체계가 아직 없으므로 기본 ROLE_USER 만 부여한다.
-        // 회원 이름을 함께 노출하기 위해 CustomUserDetails 로 감싼다.
+        // 회원 이름과 포인트를 함께 노출하기 위해 CustomUserDetails 로 감싼다.
         return new CustomUserDetails(
                 user.getUserId(),
                 user.getPasswd(),
                 user.getName(),
+                user.getPoints(),
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
     }
 }

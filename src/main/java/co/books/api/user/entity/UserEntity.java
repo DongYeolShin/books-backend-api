@@ -63,6 +63,10 @@ public class UserEntity {
     @Column(name = "address_detail", length = 255)
     private String addressDetail;
 
+    /** 고객 포인트 */
+    @Column(nullable = false)
+    private Integer points = 0;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
