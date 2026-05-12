@@ -22,6 +22,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    // 포트원 V2 결제 검증을 위한 외부 API 호출용 WebClient 제공
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    // 유효성 검증 (@Valid, @NotBlank 등)
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // 포트원 응답 직렬화 (raw_response JSONB 저장 / DTO 매핑)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // JWT (JJWT 0.13.x : 0.12.x 의 verifyWith / parseSignedClaims API 사용)
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'

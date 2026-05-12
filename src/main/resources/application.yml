@@ -15,8 +15,10 @@ spring:
     allow-bean-definition-overriding: true
 
   # PostgreSQL 데이터소스 설정
+  # stringtype=unspecified: PostgreSQL 사용자정의 ENUM 컬럼(order_status, payment_status 등)에
+  #   대해 JDBC 가 텍스트를 보내도 PG 가 ENUM 으로 자동 캐스트하도록 한다.
   datasource:
-    url: jdbc:postgresql://222.239.249.197:5432/postgres
+    url: jdbc:postgresql://222.239.249.197:5432/postgres?stringtype=unspecified
     username: postgres
     password: ehdduf922
     driver-class-name: org.postgresql.Driver
@@ -47,6 +49,12 @@ spring:
       # 정적 리소스 변경 시 브라우저 자동 새로고침
       enabled: true
       port: 35729
+
+# 포트원 V2 일반결제 검증 설정
+# api-secret 은 절대 코드/로그에 남기지 말 것 (환경변수 PORTONE_API_SECRET 으로 주입)
+portone:
+  api-base-url: https://api.portone.io
+  api-secret: 1nIOFczeBNtGCPkwK32zeP6hoMrWLFT4P7Za27CGyHwlHABFWh3HAiLdP0Mv47ImdNVcaMqyAR3KgzB2
 
 # JWT 인증 설정 (시크릿 키는 애플리케이션 시작 시 임의 생성하여 메모리에만 보관)
 jwt:

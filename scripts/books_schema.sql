@@ -157,11 +157,14 @@ COMMENT ON COLUMN users.points          IS '고객 포인트';
 -- 6. orders (주문 테이블)
 -- =====================================================================
 CREATE TABLE orders (
-    order_id          BIGSERIAL      PRIMARY KEY,
+    order_id          VARCHAR(100)     PRIMARY KEY,
     user_id           VARCHAR(100)   NOT NULL,
+    receiver          VARCHAR(100)   NOT NULL,
+    phone             VARCHAR(100)   NOT NULL,
     total_amount      INTEGER        NOT NULL CHECK (total_amount >= 0),
     status            order_status   NOT NULL DEFAULT 'pending',
     shipping_address  VARCHAR(255)   NOT NULL,
+    shipping_detail_address  VARCHAR(255)   default '',
     ordered_at        TIMESTAMPTZ    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        TIMESTAMPTZ    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE RESTRICT
@@ -169,10 +172,13 @@ CREATE TABLE orders (
 
 COMMENT ON TABLE  orders                    IS '주문 마스터';
 COMMENT ON COLUMN orders.order_id           IS '주문 ID';
+COMMENT ON COLUMN orders.receiver           IS '주문하는사람';
+COMMENT ON COLUMN orders.phone           IS '주문하는사람 연락처';
 COMMENT ON COLUMN orders.user_id            IS '주문자 ID';
 COMMENT ON COLUMN orders.total_amount       IS '총 결제 금액';
 COMMENT ON COLUMN orders.status             IS '주문 상태';
 COMMENT ON COLUMN orders.shipping_address   IS '배송지 주소';
+COMMENT ON COLUMN orders.shipping_detail_address   IS '배송지 상세 주소';
 COMMENT ON COLUMN orders.ordered_at         IS '주문 일시';
 
 CREATE INDEX idx_orders_user       ON orders(user_id);
@@ -185,7 +191,7 @@ CREATE INDEX idx_orders_ordered_at ON orders(ordered_at DESC);
 -- =====================================================================
 CREATE TABLE order_items (
     order_item_id       BIGSERIAL    PRIMARY KEY,
-    order_id            BIGINT       NOT NULL,
+    order_id            VARCHAR(100)  NOT NULL,
     book_id             VARCHAR(100) NOT NULL,
     quantity            INTEGER      NOT NULL CHECK (quantity > 0),
     price_at_purchase   INTEGER      NOT NULL CHECK (price_at_purchase >= 0),
@@ -249,6 +255,89 @@ COMMENT ON COLUMN reviews.content    IS '리뷰 내용';
 
 CREATE INDEX idx_reviews_book ON reviews(book_id);
 CREATE INDEX idx_reviews_user ON reviews(user_id);
+
+
+
+-- =====================================================================
+-- 결제 상태 ENUM (포트원 V2 일반결제)
+-- =====================================================================
+CREATE TYPE payment_status AS ENUM (
+    'paid',                     -- 결제 완료
+    'failed',                   -- 결제 실패
+    'virtual_account_issued'    -- 가상계좌 발급 (입금 대기)
+);
+
+CREATE TYPE pay_method AS ENUM (
+    'card',
+    'virtual_account',
+    'transfer',
+    'mobile',
+    'easy_pay'
+);
+
+-- =====================================================================
+-- payments (결제 테이블)
+-- =====================================================================
+CREATE TABLE payments (
+                          payment_id          VARCHAR(100)    PRIMARY KEY,
+                          order_id            VARCHAR(100)    NOT NULL,
+                          user_id             VARCHAR(100)    NOT NULL,
+    -- 포트원/PG 식별자
+                          tx_id               VARCHAR(100),
+                          channel_key         VARCHAR(100)    NOT NULL,
+                          pg_provider         VARCHAR(50),
+
+    -- 결제 상태 및 수단
+                          status              payment_status  NOT NULL,
+                          pay_method          pay_method,
+
+    -- 금액 정보 (포트원 조회 결과로 검증된 값)
+                          total_amount        INTEGER         NOT NULL CHECK (total_amount >= 0),
+                          currency            VARCHAR(10)     NOT NULL DEFAULT 'KRW',
+
+    -- 주문명
+                          order_name          VARCHAR(200)    NOT NULL,
+
+    -- 실패 정보
+                          fail_reason         TEXT,
+                          fail_code           VARCHAR(50),
+
+    -- 포트원 응답 원본 (디버깅용)
+                          raw_response        JSONB,
+
+    -- 시간 정보
+                          paid_at             TIMESTAMPTZ,
+                          created_at          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                          updated_at          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                          FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE RESTRICT,
+                          FOREIGN KEY (user_id)  REFERENCES users(user_id)   ON DELETE RESTRICT
+);
+
+COMMENT ON TABLE  payments                IS '결제 테이블 (포트원 V2 일반결제)';
+COMMENT ON COLUMN payments.payment_id     IS '결제 ID (포트원 paymentId, order_id와 동일하게 사용)';
+COMMENT ON COLUMN payments.order_id       IS '주문 ID';
+COMMENT ON COLUMN payments.user_id        IS '결제자 ID';
+COMMENT ON COLUMN payments.tx_id          IS '포트원 거래 ID (transactionId)';
+COMMENT ON COLUMN payments.channel_key    IS '포트원 채널 키';
+COMMENT ON COLUMN payments.pg_provider    IS 'PG사 (TOSSPAYMENTS, KCP, NICE 등)';
+COMMENT ON COLUMN payments.status         IS '결제 상태';
+COMMENT ON COLUMN payments.pay_method     IS '결제 수단';
+COMMENT ON COLUMN payments.total_amount   IS '결제 금액 (포트원 조회로 검증된 값)';
+COMMENT ON COLUMN payments.currency       IS '통화 (기본 KRW)';
+COMMENT ON COLUMN payments.order_name     IS '주문명';
+COMMENT ON COLUMN payments.fail_reason    IS '결제 실패 사유';
+COMMENT ON COLUMN payments.fail_code      IS '결제 실패 코드';
+COMMENT ON COLUMN payments.raw_response   IS '포트원 응답 원본 (디버깅용)';
+COMMENT ON COLUMN payments.paid_at        IS '결제 승인 일시';
+COMMENT ON COLUMN payments.created_at     IS '레코드 생성 일시';
+COMMENT ON COLUMN payments.updated_at     IS '레코드 수정 일시';
+
+CREATE INDEX idx_payments_order   ON payments(order_id);
+CREATE INDEX idx_payments_user    ON payments(user_id);
+CREATE INDEX idx_payments_status  ON payments(status);
+CREATE INDEX idx_payments_paid_at ON payments(paid_at DESC);
+
 
 
 /* 추가 사항 */
