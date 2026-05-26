@@ -98,6 +98,7 @@ public class OrderService {
         order.setShippingAddress(request.shippingAddress());
         order.setShippingDetailAddress(
                 request.shippingDetailAddress() == null ? "" : request.shippingDetailAddress());
+        order.setUsedPoints(usedPoints);
         orderRepository.save(order);
 
         for (OrderItemRequest item : request.items()) {

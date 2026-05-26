@@ -16,7 +16,7 @@ spring:
 
   # PostgreSQL 데이터소스 설정
   datasource:
-    url: jdbc:postgresql://my-book-db.cjma86uec6c1.ap-southeast-2.rds.amazonaws.com:5432/postgres
+    url: jdbc:postgresql://222.239.249.197:5432/postgres?stringtype=unspecified
     username: postgres
     password: ehdduf922
     driver-class-name: org.postgresql.Driver

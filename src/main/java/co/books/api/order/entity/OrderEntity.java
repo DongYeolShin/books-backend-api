@@ -73,6 +73,11 @@ public class OrderEntity {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+
+    /** 주문 시 사용한 포인트 금액 */
+    @Column(name = "used_points", nullable = false)
+    private int usedPoints = 0;
+
     /**
      * 결제 결과에 따라 주문 상태를 갱신한다.
      */

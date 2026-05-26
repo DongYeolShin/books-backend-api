@@ -150,7 +150,13 @@ COMMENT ON COLUMN users.postal_code     IS '우편번호';
 COMMENT ON COLUMN users.address         IS '기본 주소 (도로명/지번)';
 COMMENT ON COLUMN users.address_detail  IS '상세 주소 (동/호수 등)';
 COMMENT ON COLUMN users.points          IS '고객 포인트';
- 
+
+
+
+create type order_status as enum ('pending', 'paid', 'shipped', 'delivered', 'cancelled');
+
+alter type order_status owner to postgres;
+
 
 
 -- =====================================================================
@@ -282,34 +288,20 @@ CREATE TABLE payments (
                           payment_id          VARCHAR(100)    PRIMARY KEY,
                           order_id            VARCHAR(100)    NOT NULL,
                           user_id             VARCHAR(100)    NOT NULL,
-    -- 포트원/PG 식별자
                           tx_id               VARCHAR(100),
                           channel_key         VARCHAR(100)    NOT NULL,
                           pg_provider         VARCHAR(50),
-
-    -- 결제 상태 및 수단
                           status              payment_status  NOT NULL,
                           pay_method          pay_method,
-
-    -- 금액 정보 (포트원 조회 결과로 검증된 값)
                           total_amount        INTEGER         NOT NULL CHECK (total_amount >= 0),
                           currency            VARCHAR(10)     NOT NULL DEFAULT 'KRW',
-
-    -- 주문명
                           order_name          VARCHAR(200)    NOT NULL,
-
-    -- 실패 정보
                           fail_reason         TEXT,
                           fail_code           VARCHAR(50),
-
-    -- 포트원 응답 원본 (디버깅용)
                           raw_response        JSONB,
-
-    -- 시간 정보
                           paid_at             TIMESTAMPTZ,
                           created_at          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
                           updated_at          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
                           FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE RESTRICT,
                           FOREIGN KEY (user_id)  REFERENCES users(user_id)   ON DELETE RESTRICT
 );
@@ -343,3 +335,12 @@ CREATE INDEX idx_payments_paid_at ON payments(paid_at DESC);
 /* 추가 사항 */
 alter table books
     add column contents text default '';
+
+/* 결제 취소 기능 마이그레이션
+   payment_status ENUM 에 취소(cancelled) 값을 추가한다.
+   PostgreSQL 은 ENUM 에 값을 추가할 수 있으나 제거·순서 변경은 불가하다.
+   IF NOT EXISTS 옵션으로 재실행 시 오류를 방지한다. */
+ALTER TYPE payment_status ADD VALUE IF NOT EXISTS 'cancelled';
+/* 주문 완료 페이지 — used_points 컬럼 추가 */
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS used_points INTEGER NOT NULL DEFAULT 0;
+COMMENT ON COLUMN orders.used_points IS '주문 시 사용한 포인트 금액';

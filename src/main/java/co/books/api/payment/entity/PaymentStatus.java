@@ -7,13 +7,16 @@ package co.books.api.payment.entity;
 public enum PaymentStatus {
     PAID,
     FAILED,
-    VIRTUAL_ACCOUNT_ISSUED;
+    VIRTUAL_ACCOUNT_ISSUED,
+    /** 취소 완료 */
+    CANCELLED;
 
     public String toDbValue() {
         return switch (this) {
             case PAID -> "paid";
             case FAILED -> "failed";
             case VIRTUAL_ACCOUNT_ISSUED -> "virtual_account_issued";
+            case CANCELLED -> "cancelled";
         };
     }
 
@@ -23,6 +26,7 @@ public enum PaymentStatus {
             case "paid" -> PAID;
             case "failed" -> FAILED;
             case "virtual_account_issued" -> VIRTUAL_ACCOUNT_ISSUED;
+            case "cancelled" -> CANCELLED;
             default -> throw new IllegalArgumentException("알 수 없는 payment_status: " + v);
         };
     }
@@ -36,6 +40,7 @@ public enum PaymentStatus {
         return switch (s.toUpperCase()) {
             case "PAID" -> PAID;
             case "VIRTUAL_ACCOUNT_ISSUED" -> VIRTUAL_ACCOUNT_ISSUED;
+            case "CANCELLED" -> CANCELLED;
             default -> FAILED;
         };
     }

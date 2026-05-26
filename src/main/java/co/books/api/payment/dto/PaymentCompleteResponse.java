@@ -17,6 +17,7 @@ public record PaymentCompleteResponse(
             case PAID -> "결제가 완료되었습니다.";
             case FAILED -> "결제가 실패했습니다.";
             case VIRTUAL_ACCOUNT_ISSUED -> "가상계좌가 발급되었습니다. 입금 후 결제가 완료됩니다.";
+            case CANCELLED -> "결제가 취소되었습니다.";
         };
         return new PaymentCompleteResponse(status.name(), payment.getPaymentId(), msg);
     }

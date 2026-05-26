@@ -1,12 +1,15 @@
 package co.books.api.payment.service;
 
 import co.books.api.common.exception.PortOneApiException;
+import co.books.api.payment.dto.PortOneCancelRequest;
+import co.books.api.payment.dto.PortOneCancelResponse;
 import co.books.api.payment.dto.PortOnePaymentResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -54,6 +57,36 @@ public class PortOneApiClient {
             throw e;
         } catch (Exception e) {
             throw new PortOneApiException("포트원 API 호출 중 오류: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 포트원 V2 결제 취소 API 를 호출한다.
+     * POST /payments/{paymentId}/cancel
+     * amount 가 null 이면 전액 취소 (필드 생략), 값이 있으면 해당 금액만 부분 취소.
+     */
+    public PortOneCancelResponse cancelPayment(String paymentId, Integer amount, String reason) {
+        if (apiSecret == null || apiSecret.isBlank()) {
+            throw new PortOneApiException("포트원 API Secret 이 설정되어 있지 않습니다. (PORTONE_API_SECRET)");
+        }
+        PortOneCancelRequest body = new PortOneCancelRequest(reason, amount);
+        try {
+            return portOneWebClient.post()
+                    .uri("/payments/{paymentId}/cancel", paymentId)
+                    .header(HttpHeaders.AUTHORIZATION, "PortOne " + apiSecret)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(body)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, res -> res.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(b -> Mono.error(new PortOneApiException(
+                                    "포트원 결제 취소 실패 (status=" + res.statusCode().value() + ", body=" + b + ")"))))
+                    .bodyToMono(PortOneCancelResponse.class)
+                    .block();
+        } catch (PortOneApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PortOneApiException("포트원 결제 취소 API 호출 중 오류: " + e.getMessage(), e);
         }
     }
 }

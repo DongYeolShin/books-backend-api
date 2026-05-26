@@ -2,7 +2,7 @@ package co.books.api.auth.handler;
 
 import co.books.api.auth.jwt.JwtTokenProvider;
 import co.books.api.auth.service.CustomUserDetails;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
