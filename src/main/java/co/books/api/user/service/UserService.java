@@ -69,8 +69,8 @@ public class UserService {
                 user.getPoints()
         );
 
-        // 3. 최근 주문 5건 조회 (orderedAt DESC)
-        List<OrderEntity> orders = orderRepository.findTop5ByUserIdOrderByOrderedAtDesc(userId);
+        // 3. 최근 완료 주문 3건 조회 (PAID/SHIPPED/DELIVERED, orderedAt DESC)
+        List<OrderEntity> orders = orderRepository.findTop3CompletedByUserId(userId);
 
         // 4. 각 주문의 첫 번째 OrderItem 조회
         Map<String, Optional<OrderItemEntity>> firstItemMap = orders.stream()

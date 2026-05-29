@@ -1,11 +1,14 @@
 package co.books.api.order.service;
 
+import co.books.api.book.dto.PageInfo;
 import co.books.api.book.entity.BookEntity;
 import co.books.api.book.repo.BookRepository;
 import co.books.api.common.exception.NotFoundException;
 import co.books.api.order.dto.CreateOrderRequest;
 import co.books.api.order.dto.CreateOrderResponse;
 import co.books.api.order.dto.OrderItemRequest;
+import co.books.api.order.dto.OrderListItemDto;
+import co.books.api.order.dto.OrderListResponse;
 import co.books.api.order.entity.OrderEntity;
 import co.books.api.order.entity.OrderItemEntity;
 import co.books.api.order.entity.OrderStatus;
@@ -15,15 +18,21 @@ import co.books.api.user.entity.UserEntity;
 import co.books.api.user.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 주문 생성 서비스.
@@ -37,6 +46,11 @@ import java.util.UUID;
 public class OrderService {
 
     private static final DateTimeFormatter ORDER_ID_DATE_FMT = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    /** 구매목록 페이지당 행 수. */
+    private static final int ORDER_LIST_PAGE_SIZE = 10;
+
+    private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -119,6 +133,85 @@ public class OrderService {
                 orderId, userId, totalAmount, usedPoints);
 
         return new CreateOrderResponse(orderId, totalAmount, orderName);
+    }
+
+    /**
+     * 본인의 구매목록(주문내역) 페이징 조회.
+     *
+     * <p>대상 상태는 결제완료(PAID) / 배송중(SHIPPED) / 배송완료(DELIVERED) 이며,
+     * 주문취소(CANCELLED) 및 결제실패(FAILED) 는 제외한다.
+     * orderedAt 역순 정렬, 페이지당 {@value #ORDER_LIST_PAGE_SIZE} 건.</p>
+     *
+     * <p>각 주문의 대표 이미지는 해당 주문의 첫 번째 OrderItem 의 도서 imageUrl 을 사용한다.
+     * 주문명은 첫 책 제목 (다건이면 "{첫 책 제목} 외 N-1건") 으로 조립한다.</p>
+     */
+    @Transactional(readOnly = true)
+    public OrderListResponse getMyOrders(String userId, Integer page) {
+        int safePage = (page == null || page < 1) ? 1 : page;
+        Pageable pageable = PageRequest.of(safePage - 1, ORDER_LIST_PAGE_SIZE);
+
+        Page<OrderEntity> orderPage = orderRepository.findCompletedByUserId(userId, pageable);
+        List<OrderEntity> orders = orderPage.getContent();
+
+        // 각 주문의 전체 OrderItem 을 한 번씩 조회 (첫 번째 항목 + 총 개수에 사용)
+        Map<String, List<OrderItemEntity>> itemsByOrderId = orders.stream()
+                .collect(Collectors.toMap(
+                        OrderEntity::getOrderId,
+                        o -> orderItemRepository.findByOrderId(o.getOrderId())
+                ));
+
+        // 표시에 필요한 첫 번째 책 정보만 일괄 조회
+        List<String> firstBookIds = itemsByOrderId.values().stream()
+                .map(items -> items.isEmpty() ? null : items.get(0).getBookId())
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<String, BookEntity> bookMap = bookRepository.findAllById(firstBookIds).stream()
+                .collect(Collectors.toMap(BookEntity::getBookId, b -> b));
+
+        List<OrderListItemDto> data = orders.stream()
+                .map(order -> {
+                    List<OrderItemEntity> items = itemsByOrderId.get(order.getOrderId());
+                    Optional<OrderItemEntity> first = items.stream().findFirst();
+                    BookEntity firstBook = first.map(it -> bookMap.get(it.getBookId())).orElse(null);
+
+                    String orderName;
+                    if (firstBook == null) {
+                        orderName = "";
+                    } else if (items.size() <= 1) {
+                        orderName = firstBook.getTitle();
+                    } else {
+                        orderName = firstBook.getTitle() + " 외 " + (items.size() - 1) + "건";
+                    }
+                    String imageUrl = firstBook != null ? firstBook.getImageUrl() : null;
+
+                    String orderDate = order.getOrderedAt()
+                            .atZoneSameInstant(SEOUL)
+                            .toLocalDate()
+                            .toString();
+
+                    String statusLabel = switch (order.getStatus()) {
+                        case PENDING -> "주문 대기";
+                        case PAID -> "결제 완료";
+                        case SHIPPED -> "배송중";
+                        case DELIVERED -> "배송 완료";
+                        case CANCELLED -> "취소됨";
+                        case FAILED -> "결제 실패";
+                    };
+
+                    return new OrderListItemDto(
+                            order.getOrderId(),
+                            orderDate,
+                            orderName,
+                            order.getTotalAmount(),
+                            statusLabel,
+                            imageUrl
+                    );
+                })
+                .toList();
+
+        PageInfo pageInfo = new PageInfo(safePage, orderPage.getTotalElements());
+        return OrderListResponse.ok(data, pageInfo);
     }
 
     /**
