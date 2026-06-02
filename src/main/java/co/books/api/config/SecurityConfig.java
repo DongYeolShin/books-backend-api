@@ -79,7 +79,7 @@ public class SecurityConfig {
                         // 문제를 막기 위해, ERROR 디스패치는 인증 체크에서 제외한다.
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         // 로그인/회원가입 등 공개 엔드포인트
-                        .requestMatchers(LOGIN_URL, "/users/signup").permitAll()
+                        .requestMatchers(LOGIN_URL, "/api/v1/users/signup").permitAll()
                         // 도서 조회 엔드포인트 (메인 Top-N, 상세 등) 는 비로그인 접근 허용
                         .requestMatchers(HttpMethod.GET, "/api/v1/books/**").permitAll()
                         // 임시: 기존 학습용 엔드포인트는 공개

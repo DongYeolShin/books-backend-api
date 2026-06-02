@@ -11,15 +11,19 @@ import co.books.api.user.dto.MyInfoDto;
 import co.books.api.user.dto.MyPageData;
 import co.books.api.user.dto.MyPageResponse;
 import co.books.api.user.dto.RecentOrderDto;
+import co.books.api.user.dto.SignupRequest;
 import co.books.api.user.entity.UserEntity;
 import co.books.api.user.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,7 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * 회원 서비스.
- * 마이페이지 조회 등 회원 관련 비즈니스 로직을 처리한다.
+ * 회원가입, 마이페이지 조회 등 회원 관련 비즈니스 로직을 처리한다.
  */
 @Slf4j
 @Service
@@ -38,9 +42,57 @@ public class UserService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final BookRepository bookRepository;
+    private final PasswordEncoder passwordEncoder;
 
     private static final DateTimeFormatter BIRTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    private static final DateTimeFormatter BIRTH_INPUT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
+
+    /**
+     * 회원가입을 처리한다.
+     * user_id 및 email 중복 시 {@link IllegalStateException}(→ 409)을 던진다.
+     *
+     * @param request 회원가입 요청 DTO
+     * @throws IllegalStateException user_id 또는 email 이 이미 사용 중인 경우
+     */
+    @Transactional
+    public void signup(SignupRequest request) {
+        // user_id 중복 검사
+        if (userRepository.existsById(request.userId())) {
+            throw new IllegalStateException("이미 사용 중인 아이디입니다.");
+        }
+
+        // email 중복 검사
+        if (userRepository.existsByEmail(request.email())) {
+            throw new IllegalStateException("이미 사용 중인 이메일입니다.");
+        }
+
+        UserEntity user = new UserEntity();
+        user.setUserId(request.userId());
+        user.setEmail(request.email());
+        user.setPasswd(passwordEncoder.encode(request.passwd()));
+        user.setName(request.name());
+        user.setPhone(request.phone());
+        user.setGender(request.gender());
+        user.setPostalCode(request.postalCode());
+        user.setAddress(request.address());
+        user.setAddressDetail(request.addressDetail());
+
+        // birthDate: yyyy-MM-dd 문자열을 LocalDate 로 변환 (null 또는 파싱 불가 시 null 저장)
+        if (request.birthDate() != null && !request.birthDate().isBlank()) {
+            try {
+                user.setBirthDate(LocalDate.parse(request.birthDate(), BIRTH_INPUT_FORMATTER));
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException("생년월일 형식이 올바르지 않습니다. (yyyy-MM-dd)");
+            }
+        }
+
+        // 신규 가입 포인트 1000점 명시적 부여
+        user.setPoints(1000);
+
+        userRepository.save(user);
+        log.info("회원가입 완료: userId={}", request.userId());
+    }
 
     /**
      * 마이페이지 정보를 조회한다.
