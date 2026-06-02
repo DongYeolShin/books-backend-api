@@ -1,5 +1,6 @@
 package co.books.api.user.contrl;
 
+import co.books.api.user.dto.CheckUserIdResponse;
 import co.books.api.user.dto.MyPageResponse;
 import co.books.api.user.dto.SignupRequest;
 import co.books.api.user.dto.SignupResponse;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -36,6 +38,16 @@ public class UserController {
             @Valid @RequestBody SignupRequest request) {
         userService.signup(request);
         return ResponseEntity.ok(SignupResponse.ok());
+    }
+
+    /**
+     * 아이디 중복확인.
+     * 회원가입 전 아이디 사용 가능 여부를 반환한다.
+     * 비로그인 상태에서 접근 가능하며, SecurityConfig 에서 permitAll 처리된다.
+     */
+    @GetMapping("/check-id")
+    public ResponseEntity<CheckUserIdResponse> checkUserId(@RequestParam String userId) {
+        return ResponseEntity.ok(userService.checkUserId(userId));
     }
 
     /**

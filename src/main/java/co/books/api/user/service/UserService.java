@@ -7,6 +7,7 @@ import co.books.api.order.entity.OrderEntity;
 import co.books.api.order.entity.OrderItemEntity;
 import co.books.api.order.repo.OrderItemRepository;
 import co.books.api.order.repo.OrderRepository;
+import co.books.api.user.dto.CheckUserIdResponse;
 import co.books.api.user.dto.MyInfoDto;
 import co.books.api.user.dto.MyPageData;
 import co.books.api.user.dto.MyPageResponse;
@@ -47,6 +48,20 @@ public class UserService {
     private static final DateTimeFormatter BIRTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
     private static final DateTimeFormatter BIRTH_INPUT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
+
+    /**
+     * 아이디 중복 여부를 확인한다.
+     * 비로그인 상태의 회원가입 화면에서 호출되며, 인증 없이 접근 가능하다.
+     *
+     * @param userId 중복 확인할 아이디
+     * @return 사용 가능 여부와 안내 메시지를 담은 응답 DTO
+     */
+    @Transactional(readOnly = true)
+    public CheckUserIdResponse checkUserId(String userId) {
+        return userRepository.existsById(userId)
+                ? CheckUserIdResponse.ofTaken()
+                : CheckUserIdResponse.ofAvailable();
+    }
 
     /**
      * 회원가입을 처리한다.
