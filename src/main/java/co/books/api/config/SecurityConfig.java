@@ -82,6 +82,8 @@ public class SecurityConfig {
                         .requestMatchers(LOGIN_URL, "/api/v1/users/signup", "/api/v1/users/check-id").permitAll()
                         // 도서 조회 엔드포인트 (메인 Top-N, 상세 등) 는 비로그인 접근 허용
                         .requestMatchers(HttpMethod.GET, "/api/v1/books/**").permitAll()
+                        // 게시판 조회(GET)는 비로그인 허용, 쓰기는 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/api/v1/boards/**").permitAll()
                         // 임시: 기존 학습용 엔드포인트는 공개
                         .requestMatchers("/test", "/std/list").permitAll()
                         .anyRequest().authenticated())
